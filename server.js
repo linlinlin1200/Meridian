@@ -9,7 +9,7 @@ const app = express();
 // Для локальной разработки используются эти значения
 // Для production (Render.com) будут использоваться переменные окружения
 const PORT = process.env.PORT || 3000;
-const DATABASE_URL = process.env.DATABASE_URL || 'postgresql://postgres:123123123@localhost:5432/meridian_db';
+const DATABASE_URL = process.env.DATABASE_URL || 'postgresql://postgres:123123123@localhost:5000/meridian_db';
 
 // Конфигурация подключения к базе данных PostgreSQL
 const pool = new Pool({
