@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meridian - Premium Dining</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    
+    <style>
+        :root {
+            --bg-onyx: #0F0F0F;
+            --bg-secondary: #141414;
+            --accent-bronze: #CD7F32;
+            --accent-gold: #D4AF37;
+            --text-main: #FFFFFF;
+            --text-muted: #B0B0B0;
+            --glass-bg: rgba(20, 20, 20, 0.6);
+            --glass-border: rgba(205, 127, 50, 0.15);
+        }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-onyx); }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent-bronze); }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; cursor: none !important; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--bg-onyx);
+            color: var(--text-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+            background: radial-gradient(circle at 50% -20%, #2a1a10 0%, #0F0F0F 60%);
+        }
+
+        .preloader {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #050505; z-index: 9999;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .preloader-text {
+            font-family: 'Cormorant Garamond', serif; font-size: 4rem;
+            color: var(--accent-bronze); opacity: 0; transform: translateY(20px); letter-spacing: 5px;
+        }
+        .preloader-line { width: 0%; height: 1px; background: var(--accent-gold); margin-top: 20px; }
+
+        .cursor-dot, .cursor-outline {
+            position: fixed; top: 0; left: 0; transform: translate(-50%, -50%);
+            border-radius: 50%; z-index: 9998; pointer-events: none;
+        }
+        .cursor-dot { width: 6px; height: 6px; background-color: var(--accent-gold); }
+        .cursor-outline {
+            width: 40px; height: 40px; border: 1px solid rgba(212, 175, 55, 0.3);
+            transition: width 0.2s, height 0.2s, background-color 0.2s;
+        }
+        body.hovering .cursor-outline {
+            width: 60px; height: 60px; background-color: rgba(205, 127, 50, 0.05);
+            border-color: var(--accent-bronze); backdrop-filter: blur(2px);
+        }
+
+        .glass {
+            background: var(--glass-bg); backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid var(--glass-border);
+            position: fixed; top: 0; left: 0; width: 100%; z-index: 100; transition: background 0.3s;
+        }
+        header { padding: 20px 50px; }
+        .header-content { display: flex; justify-content: space-between; align-items: center; max-width: 1600px; margin: 0 auto; }
+        .logo {
+            font-family: 'Cormorant Garamond', serif; font-size: 36px; font-weight: 600;
+            color: var(--accent-gold); letter-spacing: 2px; text-transform: uppercase;
+        }
+        .auth-form { display: flex; gap: 15px; align-items: center; }
+
+        input {
+            padding: 10px 15px; border: 1px solid rgba(255,255,255,0.1); border-radius: 2px;
+            background: rgba(0, 0, 0, 0.3); color: white; font-family: 'Montserrat', sans-serif;
+            font-size: 13px; outline: none; transition: all 0.3s;
+        }
+        input:focus { border-color: var(--accent-bronze); background: rgba(0, 0, 0, 0.5); }
+
+        button {
+            padding: 10px 30px; border: none; border-radius: 2px;
+            background: linear-gradient(135deg, var(--accent-bronze) 0%, #8B4513 100%);
+            color: white; font-family: 'Montserrat', sans-serif; font-size: 12px;
+            font-weight: 600; letter-spacing: 1.5px; transition: all 0.3s; text-transform: uppercase;
+        }
+        button:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(205, 127, 50, 0.2); }
+        .btn-outline { background: transparent; border: 1px solid var(--accent-gold); color: var(--accent-gold); }
+        .btn-outline:hover { background: var(--accent-gold); color: #000; }
+
+        .user-info {
+            color: var(--text-muted); font-size: 14px; padding: 8px 15px;
+            background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border);
+            display: flex; gap: 15px; align-items: center; border-radius: 2px;
+        }
+        .points { color: var(--accent-gold); font-weight: 600; }
+
+        .hero-section {
+            height: 100vh; width: 100%; position: relative; display: flex; align-items: center;
+            background: url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=2070&auto=format&fit=crop') no-repeat center/cover;
+            padding: 0 50px; overflow: hidden; background-color: #111;
+        }
+        .hero-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(90deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.6) 50%, rgba(0,0,0,0.3) 100%);
+            z-index: 1;
+        }
+        .hero-content {
+            position: relative; z-index: 2; max-width: 800px; padding-left: 50px;
+            opacity: 0; transform: translateY(30px);
+        }
+        .hero-title {
+            font-family: 'Cormorant Garamond', serif; font-size: 6rem; line-height: 1;
+            color: white; margin-bottom: 20px; font-weight: 600;
+        }
+        .hero-title span { color: var(--accent-gold); font-style: italic; }
+        .hero-subtitle {
+            font-size: 1.1rem; color: #ddd; line-height: 1.6; margin-bottom: 40px;
+            max-width: 600px; border-left: 3px solid var(--accent-bronze); padding-left: 20px;
+        }
+        .hero-buttons { display: flex; gap: 20px; }
+        .hero-btn { padding: 15px 40px; font-size: 14px; letter-spacing: 2px; }
+
+        .section-title {
+            text-align: center; font-family: 'Cormorant Garamond', serif; color: var(--text-main);
+            font-size: 48px; font-weight: 400; letter-spacing: 4px; margin-bottom: 70px;
+            text-transform: uppercase; opacity: 0; transform: translateY(50px);
+        }
+        .section-title span { border-bottom: 1px solid var(--accent-bronze); padding-bottom: 10px; }
+
+        .carousel-section, .dishes-section, .game-section { padding: 100px 50px; }
+
+        .carousel-container { max-width: 1400px; margin: 0 auto; overflow: hidden; padding: 40px 0; opacity: 0; }
+        .carousel-wrapper { display: flex; transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1); }
+        .carousel-item { min-width: calc(33.333% - 40px); margin: 0 20px; overflow: hidden; background: var(--bg-secondary); }
+        .carousel-item img {
+            width: 100%; height: 350px; object-fit: cover; filter: grayscale(40%) brightness(0.8);
+            transition: transform 0.7s, filter 0.5s;
+        }
+        .carousel-item:hover img { filter: grayscale(0%) brightness(1); transform: scale(1.05); }
+        .carousel-info { padding: 30px; background: #111; }
+        .carousel-info h3 { font-family: 'Cormorant Garamond', serif; color: var(--accent-gold); margin-bottom: 10px; font-size: 24px; }
+        .carousel-info p { font-size: 13px; color: var(--text-muted); }
+        .carousel-controls { display: flex; justify-content: center; gap: 30px; margin-top: 50px; }
+        .carousel-btn {
+            width: 60px; height: 60px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.2);
+            background: transparent; color: white; font-size: 24px; display: flex; align-items: center; justify-content: center;
+        }
+        .carousel-btn:hover { border-color: var(--accent-bronze); color: var(--accent-bronze); }
+
+        .dishes-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 40px; max-width: 1400px; margin: 0 auto; }
+        .dish-card { background: #0a0a0a; opacity: 0; transform: translateY(100px); }
+        .dish-card img { width: 100%; height: 400px; object-fit: cover; opacity: 0.8; transition: all 0.6s ease; }
+        .dish-card:hover img { opacity: 0.5; transform: scale(1.05); }
+        .dish-info { padding: 30px; text-align: center; }
+        .dish-info h3 { font-family: 'Cormorant Garamond', serif; font-size: 28px; color: #fff; margin-bottom: 5px; }
+        .dish-info p { color: var(--accent-bronze); font-size: 14px; font-style: italic; }
+
+        .game-section {
+            text-align: center; background: linear-gradient(to bottom, var(--bg-onyx), #050505);
+            border-top: 1px solid rgba(255,255,255,0.05); position: relative;
+        }
+        .game-btn {
+            background: transparent; border: 1px solid var(--accent-gold); color: var(--accent-gold);
+            padding: 20px 60px; font-size: 18px; letter-spacing: 4px;
+        }
+        .game-btn:hover { background: var(--accent-gold); color: #000; box-shadow: 0 0 40px rgba(212, 175, 55, 0.2); }
+
+        /* --- Footer исправлен --- */
+        footer { padding: 100px 50px; background: #050505; color: var(--text-muted); border-top: 1px solid #1a1a1a; }
+        .footer-content { 
+            display: grid; 
+            /* Изменил ширину minmax с 250px на 180px, чтобы колонки помещались в один ряд */
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); 
+            gap: 30px; /* Уменьшил отступ */
+            max-width: 1400px; margin: 0 auto 50px; 
+        }
+        .footer-section h3 { font-family: 'Cormorant Garamond', serif; font-size: 24px; margin-bottom: 25px; color: white; }
+        .footer-section p, .footer-section a {
+            display: block; color: var(--text-muted); text-decoration: none; margin-bottom: 10px; transition: color 0.3s;
+        }
+        .footer-section a:hover { color: var(--accent-gold); }
+
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.9); z-index: 1000; align-items: center; justify-content: center;
+            opacity: 0; transition: opacity 0.3s;
+        }
+        .modal.active { display: flex; opacity: 1; }
+        .modal-content {
+            background: #141414; border: 1px solid var(--accent-bronze);
+            padding: 50px; max-width: 500px; width: 90%; position: relative;
+            box-shadow: 0 0 60px rgba(0,0,0,0.8);
+        }
+        .close-modal { position: absolute; top: 20px; right: 25px; font-size: 30px; color: var(--text-muted); transition: color 0.3s; }
+        .close-modal:hover { color: white; }
+        #gameCanvas {
+            background: radial-gradient(circle at center, #2a2a2a 0%, #1a1a1a 100%);
+            border-radius: 50%; border: 4px solid #333;
+            box-shadow: 0 0 50px rgba(205, 127, 50, 0.1); display: block; margin: 0 auto;
+        }
+
+        .toast-container {
+            position: fixed; top: 20px; right: 20px; z-index: 10000;
+        }
+        .toast {
+            background: rgba(20, 20, 20, 0.95); border-left: 4px solid var(--accent-gold);
+            padding: 15px 25px; margin-bottom: 10px; color: white; border-radius: 2px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5); backdrop-filter: blur(10px);
+            font-family: 'Montserrat', sans-serif; font-size: 13px;
+            transform: translateX(120%); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex; align-items: center; gap: 10px;
+        }
+        .toast.active { transform: translateX(0); }
+        .toast-icon { color: var(--accent-gold); font-size: 18px; }
+    </style>
+</head>
+<body>
+    <div class="toast-container" id="toastContainer"></div>
+
+    <div class="preloader">
+        <div class="preloader-text">MERIDIAN</div>
+        <div class="preloader-line"></div>
+    </div>
+
+    <div class="cursor-dot" data-cursor-dot></div>
+    <div class="cursor-outline" data-cursor-outline></div>
+
+    <header class="glass">
+        <div class="header-content">
+            <div class="logo">Meridian</div>
+            <div class="auth-section" id="authSection">
+                <div class="auth-form" id="authForm">
+                    <input type="text" id="usernameInput" placeholder="Логин" class="hover-target">
+                    <input type="password" id="passwordInput" placeholder="Пароль" class="hover-target">
+                    <button onclick="login()" class="hover-target">Войти</button>
+                    <button onclick="showRegisterModal()" class="hover-target" style="background: transparent; border: 1px solid rgba(255,255,255,0.3);">Регистрация</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <section class="hero-section">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <h1 class="hero-title">Добро пожаловать<br>в Кулинарный мир <span>Meridian</span></h1>
+            <p class="hero-subtitle">
+                Ощутите воплощение "Тихой Роскоши" в Meridian. Наш ресторан предлагает уникальный гастрономический опыт, 
+                сочетающий изысканную кухню с камерной и атмосферной обстановкой.
+            </p>
+            <div class="hero-buttons">
+                <button class="hero-btn hover-target" onclick="document.getElementById('menu-section').scrollIntoView({behavior: 'smooth'})">МЕНЮ</button>
+                <button class="hero-btn btn-outline hover-target" onclick="document.getElementById('game-section').scrollIntoView({behavior: 'smooth'})">ИГРАТЬ</button>
+            </div>
+        </div>
+    </section>
+
+    <section class="carousel-section">
+        <h2 class="section-title"><span>Наши Локации</span></h2>
+        <div class="carousel-container">
+            <div class="carousel-wrapper" id="carouselWrapper">
+                <div class="carousel-item hover-target">
+                    <img src="https://i.ibb.co/3y4B4J36/Gemini-Generated-Image-838vjf838vjf838v.png" alt="Филиал 1">
+                    <div class="carousel-info">
+                        <h3>Meridian Central</h3>
+                        <p>📍 пр. Чуй 125 | 📞 +996 312 900 100</p>
+                    </div>
+                </div>
+                <div class="carousel-item hover-target">
+                    <img src="https://i.ibb.co/CsPnSqrb/Gemini-Generated-Image-wr3trawr3trawr3t.png" alt="Филиал 2">
+                    <div class="carousel-info">
+                        <h3>Meridian Park</h3>
+                        <p>📍 ул. Исанова 42 | 📞 +996 312 900 200</p>
+                    </div>
+                </div>
+                <div class="carousel-item hover-target">
+                    <img src="https://i.ibb.co/Q3qtf6Zk/Gemini-Generated-Image-v64h7xv64h7xv64h.png" alt="Филиал 3">
+                    <div class="carousel-info">
+                        <h3>Meridian Garden</h3>
+                        <p>📍 бул. Эркиндик 87 | 📞 +996 312 900 300</p>
+                    </div>
+                </div>
+                <div class="carousel-item hover-target">
+                    <img src="https://i.ibb.co/1tcFDQJt/Gemini-Generated-Image-48im9c48im9c48im.png" alt="Филиал 4">
+                    <div class="carousel-info">
+                        <h3>Meridian Plaza</h3>
+                        <p>📍 ул. Киевская 154 | 📞 +996 312 900 400</p>
+                    </div>
+                </div>
+                 <div class="carousel-item hover-target">
+                    <img src="https://i.ibb.co/5h0b356s/Gemini-Generated-Image-xi8fzrxi8fzrxi8f.png" alt="Филиал 5">
+                    <div class="carousel-info">
+                        <h3>Meridian Elite</h3>
+                        <p>📍 пр. Манаса 33 | 📞 +996 312 900 500</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="carousel-controls">
+            <button class="carousel-btn hover-target" onclick="prevSlide()">←</button>
+            <button class="carousel-btn hover-target" onclick="nextSlide()">→</button>
+        </div>
+    </section>
+
+    <section class="dishes-section" id="menu-section">
+        <h2 class="section-title"><span>Избранное Меню</span></h2>
+        <div class="dishes-grid">
+            <div class="dish-card hover-target">
+                <img src="https://i.ibb.co/0Rw9yy4Q/Gemini-Generated-Image-l0bunml0bunml0bu.png" alt="Блюдо 1">
+                <div class="dish-info">
+                    <h3>Стейк Рибай</h3>
+                    <p>Мраморная говядина Black Angus</p>
+                </div>
+            </div>
+            <div class="dish-card hover-target">
+                <img src="https://i.ibb.co/NgT69mXs/Gemini-Generated-Image-4zqlh84zqlh84zql.png" alt="Блюдо 2">
+                <div class="dish-info">
+                    <h3>Лосось Гриль</h3>
+                    <p>Подается на подушке из шпината</p>
+                </div>
+            </div>
+            <div class="dish-card hover-target">
+                <img src="https://i.ibb.co/r2P2vgrx/Gemini-Generated-Image-pndqo8pndqo8pndq.png" alt="Блюдо 3">
+                <div class="dish-info">
+                    <h3>Трюфельная Паста</h3>
+                    <p>Ручная работа, свежий трюфель</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="game-section" id="game-section">
+        <h2 class="section-title" style="font-size: 36px;"><span>Meridian Club</span></h2>
+        <p style="color: #888; margin-bottom: 40px;">Играйте и копите баллы для оплаты счета</p>
+        <button class="game-btn hover-target" onclick="showGame()">НАЧАТЬ ИГРУ</button>
+    </section>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Meridian</h3>
+                <p>Искусство вкуса в каждой детали.<br>Премиальный сервис и атмосфера.</p>
+            </div>
+            <div class="footer-section">
+                <h3>Навигация</h3>
+                <a href="#menu-section" class="hover-target">Меню</a>
+                <a href="#game-section" class="hover-target">Игра</a>
+                <a href="#authSection" class="hover-target">Личный кабинет</a>
+            </div>
+            <div class="footer-section">
+                <h3>Контакты</h3>
+                <p>reservations@meridian.kg</p>
+                <p>+996 312 900 000</p>
+                <p>Бишкек, пр. Чуй 125</p>
+            </div>
+            <div class="footer-section">
+                <h3>Режим работы</h3>
+                <p>Пн-Вс: 10:00 - 00:00</p>
+                <p>Без выходных</p>
+            </div>
+            <div class="footer-section">
+                <h3>Следите за нами</h3>
+                <p class="hover-target">@meridian_official</p>
+            </div>
+        </div>
+        <p style="text-align: center; color: #444; font-size: 11px;">© 2024 Meridian Restaurant Group. All rights reserved.</p>
+    </footer>
+
+    <div id="registerModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal hover-target" onclick="closeRegisterModal()">×</span>
+            <h2 style="color: white; margin-bottom: 30px; text-align: center; font-family: 'Cormorant Garamond', serif;">Регистрация</h2>
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label>Email</label>
+                <input type="email" id="regEmail" placeholder="example@mail.com" style="width: 100%;">
+            </div>
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label>Логин</label>
+                <input type="text" id="regUsername" placeholder="Придумайте логин" style="width: 100%;">
+            </div>
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label>Пароль</label>
+                <input type="password" id="regPassword" placeholder="••••••••" style="width: 100%;">
+            </div>
+            <button onclick="register()" class="hover-target" style="width: 100%; margin-top: 20px;">Создать Аккаунт</button>
+        </div>
+    </div>
+
+    <div id="gameModal" class="modal">
+        <div class="modal-content" style="max-width: 480px; background: #0F0F0F; border-color: #333;">
+            <span class="close-modal hover-target" onclick="closeGame()">×</span>
+            <h2 style="color: var(--accent-bronze); text-align: center; margin-bottom: 10px; font-family: 'Cormorant Garamond', serif;">Meridian Challenge</h2>
+            
+            <div id="gameUI" style="display: flex; justify-content: space-between; margin-bottom: 15px; color: #666; font-size: 13px;">
+                <span id="scoreDisplay">Счет: 0</span>
+                <span id="bestScoreDisplay">Рекорд: 0</span>
+            </div>
+        
+            <div class="game-container" style="display: flex; justify-content: center;">
+                <canvas id="gameCanvas" width="400" height="400"></canvas>
+            </div>
+            
+            <p style="text-align: center; color: #444; font-size: 11px; margin-top: 20px; text-transform: uppercase;">
+                Кликните для броска • Остерегайтесь столкновений
+            </p>
+        </div>
+    </div>
+
+    <script>
+        window.addEventListener('load', () => {
+            const tl = gsap.timeline();
+            
+            tl.to('.preloader-text', { opacity: 1, y: 0, duration: 1 })
+              .to('.preloader-line', { width: '200px', duration: 1 }, "-=0.5")
+              .to('.preloader', { y: '-100%', duration: 1.2, ease: "power4.inOut", delay: 0.5 })
+              .from('header', { y: -50, opacity: 0, duration: 1 }, "-=0.5")
+              .to('.hero-content', { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, "-=0.8");
+              
+            gsap.registerPlugin(ScrollTrigger);
+            
+            gsap.utils.toArray('.dish-card').forEach((card, i) => {
+                gsap.to(card, {
+                    scrollTrigger: { trigger: card, start: "top 85%" },
+                    y: 0, opacity: 1, duration: 1, ease: "power3.out", delay: i * 0.1
+                });
+            });
+
+            gsap.to('.carousel-container', {
+                scrollTrigger: { trigger: '.carousel-section', start: "top 75%" },
+                opacity: 1, duration: 1.5
+            });
+            gsap.utils.toArray('.section-title').forEach(title => {
+                gsap.to(title, {
+                    scrollTrigger: { trigger: title, start: "top 85%" },
+                    y: 0, opacity: 1, duration: 1
+                });
+            });
+        });
+
+        const cursorDot = document.querySelector('[data-cursor-dot]');
+        const cursorOutline = document.querySelector('[data-cursor-outline]');
+
+        window.addEventListener('mousemove', function(e) {
+            const posX = e.clientX;
+            const posY = e.clientY;
+            cursorDot.style.left = `${posX}px`;
+            cursorDot.style.top = `${posY}px`;
+            cursorOutline.animate({ left: `${posX}px`, top: `${posY}px` }, { duration: 500, fill: "forwards" });
+        });
+
+        document.querySelectorAll('a, button, input, .carousel-item, .dish-card, .hover-target').forEach(el => {
+            el.addEventListener('mouseenter', () => document.body.classList.add('hovering'));
+            el.addEventListener('mouseleave', () => document.body.classList.remove('hovering'));
+        });
+
+        function showToast(message) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerHTML = `<span class="toast-icon">✦</span> <span>${message}</span>`;
+            
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.add('active'), 100);
+            setTimeout(() => {
+                toast.classList.remove('active');
+                setTimeout(() => toast.remove(), 400);
+            }, 3000);
+        }
+
+        let currentUser = null;
+        let carouselIndex = 0;
+        const itemsToShow = 3;
+        
+        function nextSlide() {
+            const wrapper = document.getElementById('carouselWrapper');
+            const items = document.querySelectorAll('.carousel-item');
+            const maxIndex = items.length - itemsToShow;
+            if (carouselIndex < maxIndex) {
+                carouselIndex++;
+                updateCarousel();
+            }
+        }
+
+        function prevSlide() {
+            if (carouselIndex > 0) {
+                carouselIndex--;
+                updateCarousel();
+            }
+        }
+
+        function updateCarousel() {
+            const wrapper = document.getElementById('carouselWrapper');
+            const containerWidth = document.querySelector('.carousel-container').offsetWidth;
+            const itemWidth = containerWidth / 3; 
+            wrapper.style.transform = `translateX(-${carouselIndex * itemWidth}px)`;
+        }
+
+        async function register() {
+            const email = document.getElementById('regEmail').value;
+            const username = document.getElementById('regUsername').value;
+            const password = document.getElementById('regPassword').value;
+
+            if (!email || !username || !password) { showToast('Пожалуйста, заполните все поля'); return; }
+
+            try {
+                const response = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, username, password })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    showToast('Регистрация успешна! Теперь войдите.');
+                    closeRegisterModal();
+                    document.getElementById('usernameInput').value = username;
+                } else { showToast('Ошибка: ' + data.message); }
+            } catch (error) { showToast('Ошибка соединения с сервером'); }
+        }
+
+        async function login() {
+            const username = document.getElementById('usernameInput').value;
+            const password = document.getElementById('passwordInput').value;
+            if (!username || !password) { showToast('Введите логин и пароль'); return; }
+
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    currentUser = data.user;
+                    updateAuthUI();
+                    showToast(`Добро пожаловать, ${currentUser.username}!`);
+                } else { showToast('Ошибка: ' + data.message); }
+            } catch (error) { showToast('Ошибка соединения с сервером'); }
+        }
+
+        function updateAuthUI() {
+            const authSection = document.getElementById('authSection');
+            authSection.innerHTML = `
+                <div class="user-info">
+                    <span>${currentUser.username}</span>
+                    <span class="points">✦ ${currentUser.points}</span>
+                    <button onclick="logout()" class="hover-target" style="padding: 5px 15px; font-size: 10px; margin-left: 10px; background: #333;">Выйти</button>
+                </div>
+            `;
+             const newBtn = authSection.querySelector('button');
+             newBtn.addEventListener('mouseenter', () => document.body.classList.add('hovering'));
+             newBtn.addEventListener('mouseleave', () => document.body.classList.remove('hovering'));
+        }
+
+        function logout() { currentUser = null; location.reload(); }
+        function showRegisterModal() { document.getElementById('registerModal').classList.add('active'); }
+        function closeRegisterModal() { document.getElementById('registerModal').classList.remove('active'); }
+
+        let gameReqAnimation;
+        let gameState = 'MENU';
+        let score = 0;
+        let bestScore = 0;
+        let rotationSpeed = 0.02;
+        let baseRotationSpeed = 0.02;
+
+        const plate = { x: 200, y: 200, radius: 80, rotation: 0 };
+        let utensils = [];
+        let stuckUtensils = [];
+        let particles = [];
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function initGame() {
+            stuckUtensils = [];
+            utensils = [];
+            particles = [];
+            score = 0;
+            rotationSpeed = baseRotationSpeed;
+            plate.rotation = 0;
+            gameState = 'PLAYING';
+            updateScoreUI();
+            if (gameReqAnimation) cancelAnimationFrame(gameReqAnimation);
+            gameLoop();
+        }
+
+        function showGame() {
+            if (!currentUser) { showToast('Войдите в систему чтобы играть!'); return; }
+            document.getElementById('gameModal').classList.add('active');
+            gameState = 'MENU';
+            drawMenu();
+        }
+
+        function closeGame() {
+            document.getElementById('gameModal').classList.remove('active');
+            cancelAnimationFrame(gameReqAnimation);
+            gameState = 'MENU';
+        }
+
+        function gameLoop() {
+            if (gameState !== 'PLAYING' && gameState !== 'GAMEOVER_ANIM') return;
+            
+            ctx.setTransform(1, 0, 0, 1, 0, 0); 
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            if (gameState === 'PLAYING') { plate.rotation += rotationSpeed; }
+
+            drawPlate(ctx);
+            drawStuckUtensils(ctx);
+            drawParticles(ctx);
+
+            if (utensils.length > 0) {
+                const u = utensils[0];
+                const prevY = u.y;
+                u.y -= 40; 
+
+                drawUtensil(ctx, 200, u.y, 0);
+
+                const hitLine = plate.y + plate.radius;
+                
+                if (u.y <= hitLine && prevY > hitLine - 40) { 
+                     checkHit(u);
+                }
+                
+                if (u.y < -50) utensils.shift();
+            }
+            
+            if (gameState === 'GAMEOVER_ANIM') { drawGameOverScreen(); } 
+            else { gameReqAnimation = requestAnimationFrame(gameLoop); }
+        }
+
+        function checkHit(utensil) {
+            const hitAngle = normalizeAngle(Math.atan2(utensil.y - plate.y, 0) - plate.rotation);
+            let collision = false;
+            
+            for (let stuck of stuckUtensils) {
+                let diff = Math.abs(stuck.angle - hitAngle);
+                if (diff > Math.PI) diff = 2 * Math.PI - diff;
+                if (diff < 0.25) { collision = true; break; }
+            }
+
+            if (collision) {
+                gameOver();
+            } else {
+                stuckUtensils.push({ type: 'knife', angle: hitAngle });
+                utensils.shift();
+                createParticles(200, plate.y + plate.radius);
+                score++;
+                if (score % 2 === 0) rotationSpeed += 0.002;
+                updateScoreUI();
+            }
+        }
+
+        function gameOver() {
+            gameState = 'GAMEOVER_ANIM';
+            if (score > bestScore) bestScore = score;
+            updateScoreUI();
+            savePoints(score * 10);
+        }
+
+        function drawMenu() {
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = '#FFFFFF';
+            ctx.font = '30px Cormorant Garamond';
+            ctx.textAlign = 'center';
+            ctx.fillText('MERIDIAN CHEF', 200, 180);
+            ctx.font = '14px Montserrat';
+            ctx.fillStyle = '#CD7F32';
+            ctx.fillText('КЛИКНИТЕ, ЧТОБЫ НАЧАТЬ', 200, 220);
+            drawUtensil(ctx, 200, 300, 0);
+        }
+
+        function drawGameOverScreen() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#FF4444';
+            ctx.font = 'bold 30px Montserrat';
+            ctx.textAlign = 'center';
+            ctx.fillText('GAME OVER', 200, 150);
+            ctx.fillStyle = '#FFFFFF';
+            ctx.font = '20px Montserrat';
+            ctx.fillText(`Счет: ${score}`, 200, 200);
+            ctx.fillStyle = '#CD7F32';
+            ctx.font = '14px Montserrat';
+            ctx.fillText('КЛИКНИТЕ ДЛЯ РЕСТАРТА', 200, 250);
+        }
+
+        function drawPlate(ctx) {
+            ctx.save();
+            ctx.translate(plate.x, plate.y);
+            ctx.rotate(plate.rotation);
+            ctx.shadowColor = 'rgba(0,0,0,0.8)'; 
+            ctx.shadowBlur = 25;
+
+            const grad = ctx.createRadialGradient(0, 0, plate.radius * 0.8, 0, 0, plate.radius);
+            grad.addColorStop(0, '#222'); grad.addColorStop(1, '#050505');
+            
+            ctx.beginPath(); ctx.arc(0, 0, plate.radius, 0, Math.PI * 2);
+            ctx.fillStyle = grad; ctx.fill();
+
+            ctx.beginPath(); ctx.arc(0, 0, plate.radius * 0.7, 0, Math.PI * 2);
+            ctx.fillStyle = '#CD7F32'; ctx.fill();
+            
+            ctx.strokeStyle = '#D4AF37'; ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.arc(0, 0, plate.radius * 0.65, 0, Math.PI * 2); ctx.stroke();
+            ctx.restore();
+        }
+
+ // Рисует обновленный дизайн ножа
+        function drawUtensil(ctx, x, y, angle) {
+            ctx.save(); 
+            ctx.translate(x, y); 
+            ctx.rotate(angle);
+            
+            ctx.shadowColor = 'rgba(0,0,0,0.5)'; 
+            ctx.shadowBlur = 4;
+
+            // --- ЛЕЗВИЕ (Отрицательный Y, указывает вверх при полете) ---
+            // Создаем градиент для эффекта металла
+            const bladeGrad = ctx.createLinearGradient(0, 0, 5, -50);
+            bladeGrad.addColorStop(0, '#bdc3c7');    // Светло-серый
+            bladeGrad.addColorStop(0.5, '#ecf0f1');  // Почти белый блик
+            bladeGrad.addColorStop(1, '#95a5a6');    // Темно-серый
+
+            ctx.fillStyle = bladeGrad;
+            ctx.beginPath();
+            ctx.moveTo(-6, 0);   // Левый край у основания
+            ctx.lineTo(-5, -45); // Небольшое сужение
+            ctx.lineTo(0, -65);  // Острый кончик
+            ctx.lineTo(5, -45);  // Правая сторона
+            ctx.lineTo(6, 0);    // Правый край у основания
+            ctx.closePath();
+            ctx.fill();
+
+            // Декоративная линия (кровосток) по центру лезвия
+            ctx.beginPath();
+            ctx.moveTo(0, -10);
+            ctx.lineTo(0, -50);
+            ctx.strokeStyle = '#7f8c8d';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
+            // --- РУКОЯТЬ (Положительный Y) ---
+            // Гарда (защита руки) - Золотая
+            ctx.fillStyle = '#D4AF37'; 
+            ctx.fillRect(-10, 0, 20, 5);
+
+            // Основная часть рукояти - Темное дерево
+            ctx.fillStyle = '#3E2723'; 
+            ctx.fillRect(-6, 5, 12, 35);
+
+            // Навершие рукояти (закругление снизу)
+            ctx.beginPath();
+            ctx.arc(0, 40, 7, 0, Math.PI * 2);
+            ctx.fillStyle = '#D4AF37';
+            ctx.fill();
+
+            // Заклепки на рукояти
+            ctx.fillStyle = '#D4AF37';
+            ctx.beginPath(); ctx.arc(0, 15, 2, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(0, 28, 2, 0, Math.PI*2); ctx.fill();
+
+            ctx.restore();
+        }
+
+        // Рисует приборы, которые уже воткнулись в тарелку
+        function drawStuckUtensils(ctx) {
+            stuckUtensils.forEach(u => {
+                ctx.save(); 
+                ctx.translate(plate.x, plate.y);
+                // Поворачиваем холст на угол прибора вместе с вращением тарелки
+                ctx.rotate(plate.rotation + u.angle);
+                
+                drawUtensil(ctx, 0, plate.radius, 0);
+                
+                ctx.restore();
+            });
+        }
+
+        function createParticles(x, y) {
+            for(let i=0; i<8; i++) {
+                particles.push({ x: x, y: y, vx: (Math.random() - 0.5) * 6, vy: (Math.random() - 0.5) * 6, life: 1.0 });
+            }
+        }
+
+        function drawParticles(ctx) {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                let p = particles[i]; p.x += p.vx; p.y += p.vy; p.life -= 0.04;
+                if (p.life <= 0) { particles.splice(i, 1); } else {
+                    ctx.globalAlpha = p.life; ctx.fillStyle = '#D4AF37';
+                    ctx.beginPath(); ctx.arc(p.x, p.y, 1.5, 0, Math.PI*2); ctx.fill();
+                    ctx.globalAlpha = 1.0;
+                }
+            }
+        }
+
+        function normalizeAngle(angle) {
+            angle = angle % (2 * Math.PI);
+            if (angle < 0) angle += 2 * Math.PI;
+            return angle;
+        }
+
+        function updateScoreUI() {
+            document.getElementById('scoreDisplay').innerText = `Счет: ${score}`;
+            document.getElementById('bestScoreDisplay').innerText = `Рекорд: ${bestScore}`;
+        }
+
+        async function savePoints(pointsToAdd) {
+            if (currentUser && pointsToAdd > 0) {
+                try {
+                    const response = await fetch('/api/add-points', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ userId: currentUser.id, points: pointsToAdd })
+                    });
+                    const data = await response.json();
+                    if (data.success) { currentUser.points = data.user.points; updateAuthUI(); }
+                } catch (error) { console.error('Ошибка сохранения:', error); }
+            }
+        }
+
+        canvas.addEventListener('click', (e) => {
+            if (gameState === 'MENU' || gameState === 'GAMEOVER_ANIM') { initGame(); return; }
+            if (gameState === 'PLAYING' && utensils.length === 0) { 
+                // Выброс ножа снизу (y=380)
+                utensils.push({ x: 200, y: 380 }); 
+            }
+        });
+    </script>
+</body>
+</html>
