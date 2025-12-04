@@ -1,19 +1,22 @@
-require('dotenv').config(); // Добавлено для чтения переменных окружения из файла .env
 const express = require('express');
 const { Pool } = require('pg'); // Клиент для PostgreSQL
 const bcrypt = require('bcrypt'); // Библиотека для хеширования паролей
 const path = require('path');
 
 const app = express();
+
+// ========== КОНФИГУРАЦИЯ ==========
+// Для локальной разработки используются эти значения
+// Для production (Render.com) будут использоваться переменные окружения
 const PORT = process.env.PORT || 3000;
+const DATABASE_URL = process.env.DATABASE_URL || 'postgresql://postgres:123123123@localhost:5432/meridian_db';
 
 // Конфигурация подключения к базе данных PostgreSQL
-// Использует переменную окружения DATABASE_URL или локальные настройки по умолчанию
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.DATABASE_URL && process.env.DATABASE_URL.includes('render.com') 
+  connectionString: DATABASE_URL,
+  ssl: DATABASE_URL.includes('render.com') 
     ? { rejectUnauthorized: false } // Настройки SSL для облачного хостинга (Render)
-    : false
+    : false // Для локальной разработки SSL не требуется
 });
 
 app.use(express.json()); // Middleware для парсинга JSON в теле запросов
@@ -29,7 +32,9 @@ pool.query(`
     points INTEGER DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   )
-`).catch(err => console.error('Error creating table:', err));
+`).then(() => {
+  console.log('Database table initialized');
+}).catch(err => console.error('Error creating table:', err));
 
 // --- API ENDPOINTS ---
 
@@ -127,5 +132,6 @@ app.get('/api/user/:userId', async (req, res) => {
 
 // Запуск сервера
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`🚀 Meridian Server running on port ${PORT}`);
+  console.log(`📊 Database: ${DATABASE_URL.includes('localhost') ? 'Local PostgreSQL' : 'Remote PostgreSQL'}`);
 });
